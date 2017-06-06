@@ -1,0 +1,5 @@
+Hi {firstName}! This message contains {someOtherVariableName}.
+47320234, firstName = Morten, someOtherVariableName = En hilsen fra Okolus
+32214214, firstName = Sven, someOtherVariableName = Sjefen
+11111111, firstName = Jon, someOtherVariableName = Tester
+22222222, firstName = Hans, someOtherVariableName = Humbug
