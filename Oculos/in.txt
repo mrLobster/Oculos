@@ -1,4 +1,4 @@
-Hi {firstName}! This message contains {someOtherVariableName}.
+Hi {rumpe}! This message contains {whatever}.
 47320234, firstName = Morten, someOtherVariableName = En hilsen fra Okolus
 32214214, firstName = Sven, someOtherVariableName = Sjefen
 11111111, firstName = Jon, someOtherVariableName = Tester

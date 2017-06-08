@@ -13,9 +13,10 @@ namespace Bergfall.Oculos
     {
         private const int DefaultBufferSize = 4096;
 
-        private string outFileName;
+        private readonly string outFileName;
 
         private SMSFactory smsFactory = new SMSFactory();
+
         private static IO iO = null;
 
         private static readonly object padlock = new object();
@@ -65,25 +66,31 @@ namespace Bergfall.Oculos
             var directory = Directory.GetCurrentDirectory();
             outFileName = directory + @"\out.txt";
             var inFileName = directory + @"\in.txt";
-
-            readDateFileAsync(inFileName);
+            Log.DisplayString(@" åæø?#!=¤\)\)\(\&\(\&\%\¤\&\)\¤\%\=\%\\€ \£ \$ÅØÆ_:;");
+            //readDateFileAsync(inFileName);
         }
 
         private async void readDateFileAsync(string fileName)
         {
-            string[] text = await ReadAllLinesAsync(fileName);
+            string[] text = await ReadAllLinesAsync(fileName).ConfigureAwait(false);
 
             List<string> lines = text.ToList();
 
+            // Lets just keep track of how many messages have been sent
+            int messagesSent = 0;
+
+            // First string of file is template file
             string templateString = lines[0];
 
+            // Get recipients and their variables
             readRecipientAndVariables(lines);
-                foreach (var recipient in recipients)
-                {
-                    Message message = smsFactory.CreateMessage(templateString, recipient);
-                    Task task = SendMessage(message);
-                }
-            
+
+            // As it became, I had one recipient per message, so I sent it here
+            foreach(var recipient in recipients)
+            {
+                Message message = smsFactory.CreateMessage(templateString, recipient);
+                SendMessageAsync(message);
+            }
         }
 
         private const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
@@ -116,7 +123,7 @@ namespace Bergfall.Oculos
                 using(StreamReader reader = new StreamReader(stream, encoding))
                 {
                     string line;
-                    while((line = await reader.ReadLineAsync()) != null)
+                    while((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
                     {
                         lines.Add(line);
                     }
@@ -126,16 +133,20 @@ namespace Bergfall.Oculos
             return lines.ToArray();
         }
 
-        private async Task SendMessage(Message message)
+        private async void SendMessageAsync(Message message)
         {
-            Task writeLineAsyncTask;
-            using(StreamWriter sw = new StreamWriter(new FileStream(outFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite)))
+            const int fileBufferSize = 4096;
+
+            using (var fileStream = new FileStream(outFileName, FileMode.Append, FileAccess.Write, FileShare.None, fileBufferSize))
             {
-                writeLineAsyncTask =  sw.WriteLineAsync("message.RecipientsNumber," + message.RecipientsNumber + ", MsgCount" +
-                                        message.MessageCount.ToString() + ", Body : " + message.Body);
+                using(StreamWriter sw = new StreamWriter(fileStream, Encoding.UTF8))
+                {
+                    await sw.WriteLineAsync("Recipient : " + message.RecipientsNumber +
+                                            "\tMsgCount" + message.MessageCount + "\tBody : " +
+                                            "\tSize : " + message.Size + "\tBody : " + message.Body).ConfigureAwait(false);
+
+                }
             }
-            await writeLineAsyncTask;
-            return;
         }
 
         /// <summary>
@@ -164,7 +175,5 @@ namespace Bergfall.Oculos
                 Log.Debug(e.Message);
             }
         }
-
-        private Template readTemplate(string templateString) => new Template(templateString);
     }
 }

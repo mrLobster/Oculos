@@ -10,11 +10,11 @@ namespace Bergfall.Oculos
         //private Regex regex = new Regex(@"(?<=\{)([^}]*)(?=\})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public Message CreateMessage(string templateString, Recipient recipient)
         {
-            Message message = new Message();
+            Message message = new Message(recipient.TelephoneNumber);
             Template template = new Template(templateString);
-            Encoding encoding = new GSMEncoding();
 
             int MaxNumberOfCharacters = 160;
+
             try
             {
                 if(template.VariableName.Count != recipient.variables.Count)
@@ -32,36 +32,35 @@ namespace Bergfall.Oculos
                                   recipient.TelephoneNumber);
                     }
 
-                    //Regex regex = new Regex(@"(?<=\{)" + recipient.variables.TryGetValue(template.variables[i]))
-                    //([^}]*)(?=\})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-                    template.Message = template.Message.Replace("{" + template.VariableName[i] + "}", variable);
+                    message.Body += templateString.Replace("{" + template.VariableName[i] + "}", variable);
                 }
+                
             }
             catch(Exception exp)
             {
                 Log.Debug(exp.Message);
             }
-
-            message.Body = template.Message;
-
-            byte[] bytes = encoding.GetBytes(template.Message);
+            
+            byte[] bytes = message.Encoding.GetBytes(templateString);
 
             foreach(byte bit in bytes)
             {
                 if(bit > 128)
                 {
                     // Cheat by using standard Unicode if any sign is beyond the 128 limit, instead of USC2, which I think is just Unicode BigEndian?!
-                    encoding = Encoding.BigEndianUnicode;
+                    message.Encoding = Encoding.BigEndianUnicode;
                     message.MaxNumberOfCharacters = 70;
                 }
             }
-            if(template.Message.Length > 160)
+            if(templateString.Length > 160)
             {
                 message.MaxNumberOfCharacters = 153;
             }
-            message.MessageCount = template.Message.Length / MaxNumberOfCharacters + 1;
+            message.Size = message.Encoding.GetByteCount(message.Body);
+            message.MessageCount = templateString.Length / MaxNumberOfCharacters + 1;
 
             return message;
         }
+
     }
 }

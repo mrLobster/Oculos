@@ -4,60 +4,60 @@ using System.Collections.Generic;
 namespace Bergfall.Oculos.Utils
 {
     /*
- * Copyright (c) 2010 Mediaburst Ltd <hello@mediaburst.co.uk>
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
+     * Much of the UTF-8 to GSM conversion came from the following repository :
+* Copyright (c) 2010 Mediaburst Ltd <hello@mediaburst.co.uk>
+*
+* Permission to use, copy, modify, and/or distribute this software for any
+* purpose with or without fee is hereby granted, provided that the above
+* copyright notice and this permission notice appear in all copies.
+*
+* THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+* WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+* MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+* ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+* WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+* ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+* OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+*/
 
     public class GSMEncoding : System.Text.Encoding
     {
-        public SortedDictionary<char, byte[]> CharToByte
-        {
-            get; private set;
-        }
-
-        public SortedDictionary<uint, char> ByteToChar
-        {
-            get; private set;
-        }
-
+        private SortedDictionary<char, byte[]> CharToByte { get; set; }
+        private SortedDictionary<uint, char> ByteToChar { get; set; }
+           
         public GSMEncoding() => PopulateDictionaries();
 
         public override int GetByteCount(char[] chars, int index, int count)
         {
             int byteCount = 0;
 
-            if(chars == null)
+            try
             {
-                throw new ArgumentNullException("chars");
-            }
-            if(index < 0 || index > chars.Length)
-            {
-                throw new ArgumentOutOfRangeException("index");
-            }
-            if(count < 0 || count > (chars.Length - index))
-            {
-                throw new ArgumentOutOfRangeException("count");
-            }
-
-            for(int i = index; i < count; i++)
-            {
-                if(CharToByte.ContainsKey(chars[i]))
+                if (chars == null)
                 {
-                    byteCount += CharToByte[chars[i]].Length;
+                    throw new ArgumentNullException("chars");
+                }
+                if (index < 0 || index > chars.Length)
+                {
+                    throw new ArgumentOutOfRangeException("index");
+                }
+                if (count < 0 || count > (chars.Length - index))
+                {
+                    throw new ArgumentOutOfRangeException("count");
+                }
+
+                for (int i = index; i < count; i++)
+                {
+                    if (CharToByte.ContainsKey(chars[i]))
+                    {
+                        byteCount += CharToByte[chars[i]].Length;
+                    }
                 }
             }
-
+            catch (Exception e)
+            {
+                Log.Error(e.Message);
+            }
             return byteCount;
         }
 

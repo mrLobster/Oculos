@@ -6,11 +6,6 @@ namespace Bergfall.Oculos.Data
 {
     public class Template
     {
-        public string Message
-        {
-            get; set;
-        }
-
         public List<string> VariableName { get; } = new List<string>();
 
         public Template(string templateString)
@@ -29,8 +24,6 @@ namespace Bergfall.Oculos.Data
                 {
                     var currentVariable = variableMatches[i].Value;
                     VariableName.Add(currentVariable);
-
-                    Message = templateString;
                 }
             }
         }

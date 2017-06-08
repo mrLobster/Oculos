@@ -9,6 +9,38 @@ namespace Bergfall.Oculos.Utils
 {
     public static class Log
     {
+        /// <summary>
+        /// Converts a byte into its BCD (hexadecimal) representation.
+        /// </summary>
+        /// <param name="b">The byte to convert.</param>
+        /// <returns>The converted value.</returns>
+        private static string IntToHex(byte b)
+        {
+            return hexDigits[b >> 4].ToString() + hexDigits[b & 0xF].ToString();
+        }
+        private static char[] hexDigits = {
+            '0', '1', '2', '3', '4', '5', '6', '7',
+            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        };
+        public static void DisplayString(string text)
+        {
+            Console.WriteLine("String length: {0}", text.Length);
+            foreach(char c in text)
+            {
+                if(c < 32)
+                {
+                    Console.WriteLine("<{0}> U+{1:x4}", LowNames[c], (int)c);
+                }
+                else if(c > 127)
+                {
+                    Console.WriteLine("(Possibly non-printable) U+{0:x4}", (int)c);
+                }
+                else
+                {
+                    Console.WriteLine("{0} U+{1:x4}", c, (int)c);
+                }
+            }
+        }
         public static void Debug(string message)
         {
             WriteLine(message);
@@ -16,7 +48,7 @@ namespace Bergfall.Oculos.Utils
 
         public static void Debug(object message)
         {
-            WriteLine(message.ToString());
+            Debug(message.ToString());
         }
 
         public static void Write(object message)
@@ -45,10 +77,13 @@ namespace Bergfall.Oculos.Utils
                 await sw.WriteAsync(message).ConfigureAwait(false);
             }
         }
+
+        public static void Error(string message) => throw new NotImplementedException();
     }
 
     public static class EncodeStuff
     {
+        
         public static string IntToHex(byte[] bytes)
         {
             char[] chArray = new char[bytes.Length * 2];
@@ -160,7 +195,7 @@ namespace Bergfall.Oculos.Utils
         /// A string is returned instead of a character because some characters
         /// must be escaped, and consist then of two characters instead of one.
         /// </remarks>
-        private static string CharTo7Bit(char c)
+        public static string CharTo7Bit(char c)
         {
             byte retval;
             bool escape = false;

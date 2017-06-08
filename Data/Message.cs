@@ -5,27 +5,43 @@ namespace Bergfall.Oculos.Data
 {
     public class Message
     {
-        public string RecipientsNumber
+        public Message(string recipientsNumber)
         {
-            get; set;
+            RecipientsNumber = recipientsNumber;
         }
+
+        public string RecipientsNumber { get; }
 
         public Encoding Encoding { get; set; } = new GSMEncoding();
-        public int MaxNumberOfCharacters { get; set; } = 160;
 
-        public int MessageCount
+        public int MaxNumberOfCharacters
         {
-            get; set;
+            get
+            {
+                if (Equals(Encoding, new GSMEncoding()))
+                {
+                    return 1120 / 7;
+                }
+                else if (Equals(Encoding, Encoding.BigEndianUnicode))
+                {
+                    return 1120 / 16;
+                }
+                else
+                {
+                    return 1120 / 8;
+                }
+            }
+            set
+            {
+            }
         }
 
-        public string Body
-        {
-            get; set;
-        }
+        public int MessageCount { get; set; } = 1;
 
-        public int Size
-        {
-            get; set;
-        }
+
+        public string Body { get; set; } = "";
+
+        public byte[]
+        public int Size { get; set; }
     }
 }

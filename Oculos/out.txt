@@ -1,2 +1,3 @@
-message.RecipientsNumber,, MsgCount1, Body : Hi Hans! This message contains Humbug.
-en fra Okolus.
+﻿Recipient : 47320234	MsgCount1	Body : 	Size : 77	Body : Hi ! This message contains {whatever}.Hi {rumpe}! This message contains .
+Recipient : 32214214	MsgCount1	Body : 	Size : 77	Body : Hi ! This message contains {whatever}.Hi {rumpe}! This message contains .
+Recipient : 11111111	MsgCount1	Body : 	Size : 77	Body : Hi ! This message contains {whatever}.Hi {rumpe}! This message contains .
