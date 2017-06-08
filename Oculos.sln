@@ -16,9 +16,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Data", "Data\Data.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utils", "Utils\Utils.csproj", "{A0986341-3951-4897-8975-82D4C739C95E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTestProject1", "XUnitTestProject1\XUnitTestProject1.csproj", "{A153551A-9372-46EA-9897-A54C473ED1DC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XUnitTestProject", "XUnitTestProject\XUnitTestProject.csproj", "{B2EBCDFB-F76D-4478-B3C6-8A774E68AE1D}"
 EndProject
 Global
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -36,10 +39,10 @@ Global
 		{A0986341-3951-4897-8975-82D4C739C95E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0986341-3951-4897-8975-82D4C739C95E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0986341-3951-4897-8975-82D4C739C95E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A153551A-9372-46EA-9897-A54C473ED1DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A153551A-9372-46EA-9897-A54C473ED1DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A153551A-9372-46EA-9897-A54C473ED1DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A153551A-9372-46EA-9897-A54C473ED1DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2EBCDFB-F76D-4478-B3C6-8A774E68AE1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2EBCDFB-F76D-4478-B3C6-8A774E68AE1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2EBCDFB-F76D-4478-B3C6-8A774E68AE1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2EBCDFB-F76D-4478-B3C6-8A774E68AE1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

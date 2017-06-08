@@ -2,133 +2,169 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
+using System.Text;
+using System.Threading.Tasks;
 using Bergfall.Oculos.Data;
-using Microsoft.VisualBasic.CompilerServices;
-using Bergfall.Oculos;
 using Bergfall.Oculos.Utils;
 
 namespace Bergfall.Oculos
 {
     public class IO
     {
-        private IO iO; // only one instance of class IO is allowed
+        private const int DefaultBufferSize = 4096;
 
-        public IO GetInstance()
+        private string outFileName;
+
+        private SMSFactory smsFactory = new SMSFactory();
+        private static IO iO = null;
+
+        private static readonly object padlock = new object();
+
+        public static IO GetInstance
         {
-            return iO ?? (iO = new IO());
+            get
+            {
+                lock(padlock)
+                {
+                    return iO ?? (iO = new IO());
+                }
+            }
         }
 
         private List<string> variables = new List<string>();
-
-        private string outFileName, inFileName, directory;
 
         private List<Recipient> recipients = new List<Recipient>();
 
         private Dictionary<string, Recipient> SMStoBeSent = new Dictionary<string, Recipient>();
 
-        public Template Template
+        private Template Template
         {
-            get; private set;
+            get; set;
         }
 
-        private Recipient addOrGetRecipient(string phoneNumber)
+        /// <summary>
+        /// Create and return new Recipient
+        /// </summary>
+        /// <param name="phoneNumber"></param>
+        /// <returns></returns>
+        private Recipient addRecipient(string phoneNumber)
         {
-            if (string.IsNullOrEmpty(phoneNumber))
+            if(string.IsNullOrEmpty(phoneNumber))
+            {
                 throw new ArgumentException("Phone number must be used to initialize a recipient", nameof(phoneNumber));
+            }
 
             Recipient newRecipient = new Recipient(phoneNumber);
             recipients.Add(newRecipient);
 
             return newRecipient;
         }
-        
-        internal IO()
+
+        private IO()
         {
-            directory = Directory.GetCurrentDirectory();
+            var directory = Directory.GetCurrentDirectory();
             outFileName = directory + @"\out.txt";
-            inFileName = directory + @"\in.txt";
-            ReadDataFile(inFileName);
+            var inFileName = directory + @"\in.txt";
 
-            GSMEncoding gsmEncoding = new GSMEncoding();
-            
-            
+            readDateFileAsync(inFileName);
         }
 
-        private void ReadDataFile(string fileName)
+        private async void readDateFileAsync(string fileName)
         {
-            List<string> lines = File.ReadLines(fileName).ToList();
+            string[] text = await ReadAllLinesAsync(fileName);
 
-            var template = readTemplate(lines[0]);
+            List<string> lines = text.ToList();
+
+            string templateString = lines[0];
+
             readRecipientAndVariables(lines);
-
-            SMSFactory SMSFactory = new SMSFactory();
-            
-            foreach (var recipient in recipients)
-            {
-                async message = SMSFactory.CreateMessageAsync(template, recipient);
-                Send(message);
-            }
-            
-            
-        }
-
-        private void Send(async message)
-        {
-
-        }
-
-        private void readRecipientAndVariables(List<string> lines)
-        {
-            for(int i = 1; i < lines.Count; i++)
-            {
-                var recipientFields = lines[i].Split(',').Select(s => s.Trim()).ToList();
-                Recipient recipient = addOrGetRecipient(recipientFields[0]);
-
-                for(int j = 1; j < recipientFields.Count; j++)
+                foreach (var recipient in recipients)
                 {
-                    string[] keyValuePair = recipientFields[j].Split('=');
-                    recipient.AddVariable(keyValuePair[0].Trim(), keyValuePair[1].Trim());
+                    Message message = smsFactory.CreateMessage(templateString, recipient);
+                    Task task = SendMessage(message);
+                }
+            
+        }
+
+        private const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
+
+        /// <summary>
+        /// Reads all lines of parameter path async, returning a string[] with all the lines of the file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private static Task<string[]> ReadAllLinesAsync(string path)
+        {
+            return ReadAllLinesAsync(path, Encoding.UTF8);
+        }
+
+        /// <summary>
+        /// The meat of the ReadAllLines code
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        private static async Task<string[]> ReadAllLinesAsync(string path, Encoding encoding)
+        {
+            var lines = new List<string>();
+
+            // Open the FileStream with the same FileMode, FileAccess
+            // and FileShare as a call to File.OpenText would've done.
+            using(FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+                DefaultBufferSize, DefaultOptions))
+            {
+                using(StreamReader reader = new StreamReader(stream, encoding))
+                {
+                    string line;
+                    while((line = await reader.ReadLineAsync()) != null)
+                    {
+                        lines.Add(line);
+                    }
                 }
             }
+
+            return lines.ToArray();
         }
-        private Template readTemplate(string templateString)
+
+        private async Task SendMessage(Message message)
         {
-            var template = new Template(templateString);
-            return template;
+            Task writeLineAsyncTask;
+            using(StreamWriter sw = new StreamWriter(new FileStream(outFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite)))
+            {
+                writeLineAsyncTask =  sw.WriteLineAsync("message.RecipientsNumber," + message.RecipientsNumber + ", MsgCount" +
+                                        message.MessageCount.ToString() + ", Body : " + message.Body);
+            }
+            await writeLineAsyncTask;
+            return;
         }
+
+        /// <summary>
+        /// Creates Recipients and parses it's variables
+        /// </summary>
+        /// <param name="lines"></param>
+        private void readRecipientAndVariables(List<string> lines)
+        {
+            try
+            {
+                for(int i = 1; i < lines.Count; i++)
+                {
+                    List<string> recipientFields = lines[i].Split(',').Select(s => s.Trim()).ToList();
+
+                    Recipient recipient = addRecipient(recipientFields[0]);
+
+                    for(int j = 1; j < recipientFields.Count; j++)
+                    {
+                        string[] keyValuePair = recipientFields[j].Split('=');
+                        recipient.AddVariable(keyValuePair[0].Trim(), keyValuePair[1].Trim());
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Log.Debug(e.Message);
+            }
+        }
+
+        private Template readTemplate(string templateString) => new Template(templateString);
     }
 }
-
-//for(int i = 0; i<stringParts.Count; i++)
-//{
-//if(stringParts[i].IndexOf('{') > -1)
-//{
-//// If { had anything in front of it, a comma or something similar, it will now be seperated as group 1
-//var parameterPartsStart = stringParts[i].Split('{');
-//    if(parameterPartsStart.Length > 1)
-//{
-//    smsText += parameterPartsStart[0];
-
-//    var parameterPartsEnd = parameterPartsStart[1].Split('}');
-
-//    if(parameterPartsEnd.Length > 1)
-//    {
-//        smsText += parameterPartsEnd[0].ToUpper();
-//        smsText += parameterPartsEnd[1];
-//    }
-//}
-//int endOfVariable = stringParts[i].IndexOf('}');
-//int variableNameLength = stringParts[i].IndexOf('}') - 2;
-//smsText += stringParts[i].Substring(1, endOfVariable - 1);
-//}
-//else
-//{
-//smsText += stringParts[i];
-//}
-//if(i<stringParts.Count - 1)
-//{
-//smsText += " ";
-//}
-//}

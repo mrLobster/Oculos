@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace Bergfall.Oculos.Data
 {
     public class Recipient
     {
-        public string TelephoneNumber { get; } = String.Empty;
+        public string TelephoneNumber
+        {
+            get; private set;
+        }
+
         public Dictionary<string, string> variables { get; } = new Dictionary<string, string>();
-        public IList<async> Messages { get; } = new List<async>();
+        public List<Message> Messages { get; } = new List<Message>();
 
         public Recipient(string phoneNumber)
         {
@@ -23,7 +24,6 @@ namespace Bergfall.Oculos.Data
             {
                 variables.Add(key, value);
             }
-            
         }
 
         public string GetVariable(string templateVariable)

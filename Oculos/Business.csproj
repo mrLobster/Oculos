@@ -10,6 +10,10 @@
     <StartupObject />
     <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="obj\out.txt" />
+  </ItemGroup>
   
   <ItemGroup>
     <ProjectReference Include="..\Data\Data.csproj" />
@@ -21,6 +25,12 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="System.Collections.NonGeneric" Version="4.3.0" />
     <PackageReference Include="xunit" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6.2\System.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

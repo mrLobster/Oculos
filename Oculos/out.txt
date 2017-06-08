@@ -1,0 +1,2 @@
+message.RecipientsNumber,, MsgCount1, Body : Hi Hans! This message contains Humbug.
+en fra Okolus.

@@ -47,18 +47,7 @@ namespace XUnitTestProject1
                 Assert.Equal(expectedResult, result);
             }
 
-            /// <summary>
-            /// NULL character in the middle of string should be replaced with space (0x20)
-            /// </summary>				
-            [Fact]
-            public void GetBytes_NullInsideString_Success()
-            {
-                const string input = "a\0b";
-                var expectedResult = new byte[] {97, 32, 98};
-                var result = m_GsmEncoding.GetBytes(input);
-
-                Assert.Equal(expectedResult, result);
-            }
+            
 
             /// <summary>
             /// NULL character in the middle of string should not be replaced with space (32) if followed by FORM FEED
@@ -72,20 +61,7 @@ namespace XUnitTestProject1
                 Assert.Equal(expectedResult, result);
             }
 
-            /// <summary>
-            /// Sequence of NULL characters in the middle of string should be replaced with spaces (32)
-            /// </summary>				
-            [Fact]
-            public void GetBytes_SequenceOfNullsInsideString_Success()
-            {
-                const string input = "a\0\0\0b";
-                var expectedResult = new byte[] {97, 32, 32, 32, 98};
-
-
-                var result = m_GsmEncoding.GetBytes(input.ToCharArray());
-
-                Assert.Equal(expectedResult, result);
-            }
+          
 
             /// <summary>
             /// Sequence of NULL characters followed by form feed in the middle of string should not be replaced with spaces (32)
