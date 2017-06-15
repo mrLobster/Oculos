@@ -10,9 +10,10 @@ namespace Bergfall.Oculos.Data
             RecipientsNumber = recipientsNumber;
         }
 
-        public string RecipientsNumber { get; }
+        public string RecipientsNumber { get; private set; }
 
         public Encoding Encoding { get; set; } = new GSMEncoding();
+
 
         public int MaxNumberOfCharacters
         {
@@ -20,28 +21,43 @@ namespace Bergfall.Oculos.Data
             {
                 if (Equals(Encoding, new GSMEncoding()))
                 {
-                    return 1120 / 7;
+                    if (Body?.Length > 160)
+                    {
+                        return 153;
+                    }
+                    else
+                    {
+                        return 160;
+                    }
+                    //return 1120 / 7;
                 }
                 else if (Equals(Encoding, Encoding.BigEndianUnicode))
                 {
-                    return 1120 / 16;
+                    return 80;
                 }
-                else
+                else // UTF-8 encoding
                 {
-                    return 1120 / 8;
+                    return 140;
                 }
-            }
-            set
-            {
             }
         }
 
         public int MessageCount { get; set; } = 1;
 
 
-        public string Body { get; set; } = "";
+        public string Body { get; set; }
 
-        public byte[]
-        public int Size { get; set; }
+       
+        public int SizeInBytes { get; set; }
+
+        public int NumberOfCharacters => this.Body.Length;
+    }
+
+    public static class MessageExtensions
+    {
+        public static bool IsGSM(this string text)
+        {
+            return true;
+        }
     }
 }

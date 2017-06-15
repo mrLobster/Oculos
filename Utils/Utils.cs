@@ -18,29 +18,33 @@ namespace Bergfall.Oculos.Utils
         {
             return hexDigits[b >> 4].ToString() + hexDigits[b & 0xF].ToString();
         }
-        private static char[] hexDigits = {
+
+        private static char[] hexDigits =
+        {
             '0', '1', '2', '3', '4', '5', '6', '7',
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
         };
+
         public static void DisplayString(string text)
         {
             Console.WriteLine("String length: {0}", text.Length);
-            foreach(char c in text)
+            foreach (char c in text)
             {
-                if(c < 32)
+                if (c < 32)
                 {
-                    Console.WriteLine("<{0}> U+{1:x4}", LowNames[c], (int)c);
+                    Console.WriteLine("<{0}> U+{1:x4}", (int) c);
                 }
-                else if(c > 127)
+                else if (c > 127)
                 {
-                    Console.WriteLine("(Possibly non-printable) U+{0:x4}", (int)c);
+                    Console.WriteLine("(Possibly non-printable) U+{0:x4}", (int) c);
                 }
                 else
                 {
-                    Console.WriteLine("{0} U+{1:x4}", c, (int)c);
+                    Console.WriteLine("{0} U+{1:x4}", c, (int) c);
                 }
             }
         }
+
         public static void Debug(string message)
         {
             WriteLine(message);
@@ -58,9 +62,9 @@ namespace Bergfall.Oculos.Utils
 
         public static async void WriteToFile(IEnumerable<object> items)
         {
-            using(StringWriter sw = new StringWriter())
+            using (StringWriter sw = new StringWriter())
             {
-                foreach(var msg in items)
+                foreach (var msg in items)
                 {
                     await sw.WriteLineAsync(msg.ToString()).ConfigureAwait(false);
                 }
@@ -72,24 +76,28 @@ namespace Bergfall.Oculos.Utils
         {
             string dir = Directory.GetCurrentDirectory() + @"\log.txt";
 
-            using(StreamWriter sw = new StreamWriter(File.OpenWrite(dir)))
+            using (StreamWriter sw = new StreamWriter(File.OpenWrite(dir)))
             {
                 await sw.WriteAsync(message).ConfigureAwait(false);
             }
         }
 
-        public static void Error(string message) => throw new NotImplementedException();
+        public static void Error(string message)
+        {
+            ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine(message);
+        }
     }
 
     public static class EncodeStuff
     {
-        
+
         public static string IntToHex(byte[] bytes)
         {
             char[] chArray = new char[bytes.Length * 2];
-            for(int index = 0; index < bytes.Length; ++index)
+            for (int index = 0; index < bytes.Length; ++index)
             {
-                int num = (int)bytes[index];
+                int num = (int) bytes[index];
                 chArray[index * 2] = hexDigits[num >> 4];
                 chArray[index * 2 + 1] = hexDigits[num & 15];
             }
@@ -133,20 +141,20 @@ namespace Bergfall.Oculos.Utils
         /// </example>
         private static string EncodeSemiOctets(string data)
         {
-            if(data.Length % 2 != 0)
+            if (data.Length % 2 != 0)
                 data += "F"; // Pad address with an "F" to make it even length
 
             string swapped = string.Empty;
-            for(int i = 0; i < data.Length; i += 2)
+            for (int i = 0; i < data.Length; i += 2)
                 swapped += data.Substring(i + 1, 1) + data.Substring(i, 1);
             return swapped;
         }
 
         private static char[] hexDigits =
         {
-                '0', '1', '2', '3', '4', '5', '6', '7',
-                '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
-            };
+            '0', '1', '2', '3', '4', '5', '6', '7',
+            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        };
 
         /// <summary>
         /// Converts a byte into its BCD (hexadecimal) representation.
@@ -199,191 +207,191 @@ namespace Bergfall.Oculos.Utils
         {
             byte retval;
             bool escape = false;
-            switch(c)
+            switch (c)
             {
                 // Characters not listed here are equal to those in the
                 // ISO-8859-1 charset OR not present in it.
 
                 case '@':
-                retval = 0;
-                break;
+                    retval = 0;
+                    break;
 
                 case '£':
-                retval = 1;
-                break;
+                    retval = 1;
+                    break;
 
                 case '$':
-                retval = 2;
-                break;
+                    retval = 2;
+                    break;
 
                 case '¥':
-                retval = 3;
-                break;
+                    retval = 3;
+                    break;
 
                 case 'è':
-                retval = 4;
-                break;
+                    retval = 4;
+                    break;
 
                 case 'é':
-                retval = 5;
-                break;
+                    retval = 5;
+                    break;
 
                 case 'ú':
-                retval = 6;
-                break;
+                    retval = 6;
+                    break;
 
                 case 'ì':
-                retval = 7;
-                break;
+                    retval = 7;
+                    break;
 
                 case 'ò':
-                retval = 8;
-                break;
+                    retval = 8;
+                    break;
 
                 case 'Ç':
-                retval = 9;
-                break;
+                    retval = 9;
+                    break;
 
                 case 'Ø':
-                retval = 11;
-                break;
+                    retval = 11;
+                    break;
 
                 case 'ø':
-                retval = 12;
-                break;
+                    retval = 12;
+                    break;
 
                 case 'Å':
-                retval = 14;
-                break;
+                    retval = 14;
+                    break;
 
                 case 'å':
-                retval = 15;
-                break;
+                    retval = 15;
+                    break;
 
                 case '_':
-                retval = 17;
-                break;
+                    retval = 17;
+                    break;
 
                 case 'Æ':
-                retval = 28;
-                break;
+                    retval = 28;
+                    break;
 
                 case 'æ':
-                retval = 29;
-                break;
+                    retval = 29;
+                    break;
 
                 case 'ß':
-                retval = 30;
-                break;
+                    retval = 30;
+                    break;
 
                 case 'É':
-                retval = 31;
-                break;
+                    retval = 31;
+                    break;
 
                 case '¤':
-                retval = 36;
-                break; // 164 in ISO-8859-1
+                    retval = 36;
+                    break; // 164 in ISO-8859-1
                 case '¡':
-                retval = 64;
-                break;
+                    retval = 64;
+                    break;
                 // 65-90 capital letters
                 case 'Ä':
-                retval = 91;
-                break;
+                    retval = 91;
+                    break;
 
                 case 'Ö':
-                retval = 92;
-                break;
+                    retval = 92;
+                    break;
 
                 case 'Ñ':
-                retval = 93;
-                break;
+                    retval = 93;
+                    break;
 
                 case 'Ü':
-                retval = 94;
-                break;
+                    retval = 94;
+                    break;
 
                 case '§':
-                retval = 95;
-                break;
+                    retval = 95;
+                    break;
 
                 case '¿':
-                retval = 96;
-                break;
+                    retval = 96;
+                    break;
                 // 97-122 small letters
                 case 'ä':
-                retval = 123;
-                break;
+                    retval = 123;
+                    break;
 
                 case 'ö':
-                retval = 124;
-                break;
+                    retval = 124;
+                    break;
 
                 case 'ñ':
-                retval = 125;
-                break;
+                    retval = 125;
+                    break;
 
                 case 'ü':
-                retval = 126;
-                break;
+                    retval = 126;
+                    break;
 
                 case 'à':
-                retval = 127;
-                break;
+                    retval = 127;
+                    break;
 
                 // extension table
                 case '\f':
-                retval = 10;
-                escape = true;
-                break; // form feed, 0x0C
+                    retval = 10;
+                    escape = true;
+                    break; // form feed, 0x0C
                 case '^':
-                retval = 20;
-                escape = true;
-                break;
+                    retval = 20;
+                    escape = true;
+                    break;
 
                 case '{':
-                retval = 40;
-                escape = true;
-                break;
+                    retval = 40;
+                    escape = true;
+                    break;
 
                 case '}':
-                retval = 41;
-                escape = true;
-                break;
+                    retval = 41;
+                    escape = true;
+                    break;
 
                 case '\\':
-                retval = 47;
-                escape = true;
-                break;
+                    retval = 47;
+                    escape = true;
+                    break;
 
                 case '[':
-                retval = 60;
-                escape = true;
-                break;
+                    retval = 60;
+                    escape = true;
+                    break;
 
                 case '~':
-                retval = 61;
-                escape = true;
-                break;
+                    retval = 61;
+                    escape = true;
+                    break;
 
                 case ']':
-                retval = 62;
-                escape = true;
-                break;
+                    retval = 62;
+                    escape = true;
+                    break;
 
                 case '|':
-                retval = 64;
-                escape = true;
-                break;
+                    retval = 64;
+                    escape = true;
+                    break;
 
                 case '€':
-                retval = 101;
-                escape = true;
-                break; // 164 in ISO-8859-15
+                    retval = 101;
+                    escape = true;
+                    break; // 164 in ISO-8859-15
 
                 default:
-                retval = (byte)c;
-                break;
+                    retval = (byte) c;
+                    break;
             }
             return (escape ? Convert.ToChar(0x1B).ToString() : "") + Convert.ToChar(retval).ToString();
         }
@@ -402,7 +410,7 @@ namespace Bergfall.Oculos.Utils
         private static string StringTo7Bit(string s)
         {
             string newString = string.Empty;
-            for(int i = 0; i < s.Length; i++)
+            for (int i = 0; i < s.Length; i++)
                 newString += CharTo7Bit(s.Substring(i, 1)[0]);
             return newString;
         }
@@ -421,23 +429,97 @@ namespace Bergfall.Oculos.Utils
         {
             ArrayList output = new ArrayList();
             string octetSecond = string.Empty;
-            for(int i = 0; i < data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                string current = IntToBin((byte)data[i], 7);
-                if(i != 0 && i % 8 != 0)
+                string current = IntToBin((byte) data[i], 7);
+                if (i != 0 && i % 8 != 0)
                 {
                     string octetFirst = current.Substring(7 - i % 8);
                     string currentOctet = octetFirst + octetSecond;
                     output.Add(BinToInt(currentOctet));
                 }
                 octetSecond = current.Substring(0, 7 - i % 8);
-                if(i == data.Length - 1 && octetSecond != string.Empty)
+                if (i == data.Length - 1 && octetSecond != string.Empty)
                     output.Add(BinToInt(octetSecond));
             }
 
             byte[] array = new byte[output.Count];
             output.CopyTo(array);
             return array;
+        }
+    }
+
+    public static class SetupForTest
+    {
+        public static void WriteTestOutFile()
+        {
+            var outFile = Directory.GetCurrentDirectory() + @"\in2.txt";
+
+            Random random = new Random();
+
+            try
+            {
+                for (int k = 0; k < 1000; k++)
+                {
+
+                    using(FileStream fs = new FileStream(outFile, FileMode.Append, FileAccess.Write))
+                    {
+
+                        using(StreamWriter sw = new StreamWriter(fs))
+                        {
+                            int[] telephone = new int[8];
+                            for(int i = 0; i < 8; i++)
+                            {
+                                telephone[i] = random.Next(0, 9);
+                            }
+                            string telephoneResult = "recipient:" + string.Join("", telephone);
+                            sw.Write(telephoneResult);
+
+                            // create two variables
+                            sw.Write(",someVariable,");
+
+                            for(int i = 0; i < 2; i++)
+                            {
+                                if(i == 0)
+                                {
+                                    string variable1 = GetRandomString(random, random.Next(4, 10));
+                                    sw.Write(variable1);
+                                }
+                                else
+                                {
+                                    sw.Write(",someOtherVariable,");
+                                    string variable2 = GetRandomString(random, random.Next(4, 10));
+                                    sw.WriteLine(variable2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                WriteLine(e);
+                throw;
+            }
+        }
+
+
+        public static string GetRandomString(Random rnd, int length)
+        {
+            string charPool = @"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw xyz1234567890!""#¤%&/()=?+€][$£@";
+            StringBuilder rs = new StringBuilder();
+
+            while (length-- > 0)
+            {
+                rs.Append(charPool[(int) (rnd.NextDouble() * charPool.Length)]);
+            }
+
+            return rs.ToString();
+        }
+
+        private static string toHex(int nr)
+        {
+            return nr.ToString("X4");
         }
     }
 }

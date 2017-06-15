@@ -17,30 +17,19 @@ namespace Bergfall.Oculos
 
         private SMSFactory smsFactory = new SMSFactory();
 
-        private static IO iO = null;
+        private static IO _iO;
 
         private static readonly object padlock = new object();
 
-        public static IO GetInstance
+        public static IO GetInstance(string inFileName)
         {
-            get
+
+
+            lock (padlock)
             {
-                lock(padlock)
-                {
-                    return iO ?? (iO = new IO());
-                }
+                return _iO ?? (_iO = new IO(inFileName));
             }
-        }
 
-        private List<string> variables = new List<string>();
-
-        private List<Recipient> recipients = new List<Recipient>();
-
-        private Dictionary<string, Recipient> SMStoBeSent = new Dictionary<string, Recipient>();
-
-        private Template Template
-        {
-            get; set;
         }
 
         /// <summary>
@@ -48,26 +37,29 @@ namespace Bergfall.Oculos
         /// </summary>
         /// <param name="phoneNumber"></param>
         /// <returns></returns>
-        private Recipient addRecipient(string phoneNumber)
+        private Recipient createRecipient(string phoneNumber)
         {
-            if(string.IsNullOrEmpty(phoneNumber))
+            if (string.IsNullOrEmpty(phoneNumber))
             {
-                throw new ArgumentException("Phone number must be used to initialize a recipient", nameof(phoneNumber));
+                Log.Error("Trying to create a recipient without a phonenumber!");
+                return new Recipient("00000000");
             }
-
-            Recipient newRecipient = new Recipient(phoneNumber);
-            recipients.Add(newRecipient);
-
-            return newRecipient;
+            else
+            {
+                Recipient newRecipient = new Recipient(phoneNumber);
+                return newRecipient;
+            }
         }
-
-        private IO()
+        /// <summary>
+        /// Initiate with full path to file for parsing
+        /// </summary>
+        /// <param name="inFileName"></param>
+        private IO(string inFileName)
         {
             var directory = Directory.GetCurrentDirectory();
             outFileName = directory + @"\out.txt";
-            var inFileName = directory + @"\in.txt";
-            Log.DisplayString(@" åæø?#!=¤\)\)\(\&\(\&\%\¤\&\)\¤\%\=\%\\€ \£ \$ÅØÆ_:;");
-            //readDateFileAsync(inFileName);
+
+            readDateFileAsync(inFileName);
         }
 
         private async void readDateFileAsync(string fileName)
@@ -76,23 +68,51 @@ namespace Bergfall.Oculos
 
             List<string> lines = text.ToList();
 
-            // Lets just keep track of how many messages have been sent
-            int messagesSent = 0;
-
             // First string of file is template file
-            string templateString = lines[0];
+            Template template = new Template(lines[0]);
 
             // Get recipients and their variables
-            readRecipientAndVariables(lines);
+            List<Recipient> recipients = readRecipientAndVariables(lines);
 
             // As it became, I had one recipient per message, so I sent it here
-            foreach(var recipient in recipients)
+            foreach (var recipient in recipients)
             {
-                Message message = smsFactory.CreateMessage(templateString, recipient);
-                SendMessageAsync(message);
+                Message message = smsFactory.CreateMessage(template, recipient);
+                await SendMessageAsync(message).ConfigureAwait(false);
             }
         }
+        /// <summary>
+        /// Creates Recipients and parses it's variables
+        /// </summary>
+        /// <param name="lines"></param>
+        private List<Recipient> readRecipientAndVariables(List<string> lines)
+        {
+            var recipients = new List<Recipient>();
+            try
+            {
+                for (int i = 1; i < lines.Count; i++)
+                {
+                    List<string> recipientFields = lines[i].Split(',').Select(s => s.Trim()).ToList();
 
+                    // Create new recipient based on phonenumber
+                    Recipient recipient = createRecipient(recipientFields[1]);
+
+                    recipients.Add(recipient);
+
+                    for (int j = 2; j < recipientFields.Count; j += 2)
+                    {
+                        recipient.AddVariable(recipientFields[j], recipientFields[j + 1]);
+                    }
+                }
+                return recipients;
+
+            }
+            catch (Exception e)
+            {
+                Log.Error(e.Message);
+                return recipients;
+            }
+        }
         private const FileOptions DefaultOptions = FileOptions.Asynchronous | FileOptions.SequentialScan;
 
         /// <summary>
@@ -117,13 +137,13 @@ namespace Bergfall.Oculos
 
             // Open the FileStream with the same FileMode, FileAccess
             // and FileShare as a call to File.OpenText would've done.
-            using(FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
+            using (FileStream stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
                 DefaultBufferSize, DefaultOptions))
             {
-                using(StreamReader reader = new StreamReader(stream, encoding))
+                using (StreamReader reader = new StreamReader(stream, encoding))
                 {
                     string line;
-                    while((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
+                    while ((line = await reader.ReadLineAsync().ConfigureAwait(false)) != null)
                     {
                         lines.Add(line);
                     }
@@ -133,47 +153,46 @@ namespace Bergfall.Oculos
             return lines.ToArray();
         }
 
-        private async void SendMessageAsync(Message message)
-        {
-            const int fileBufferSize = 4096;
+        //private async void SendMessageAsync(Message message)
+        //{
 
-            using (var fileStream = new FileStream(outFileName, FileMode.Append, FileAccess.Write, FileShare.None, fileBufferSize))
-            {
-                using(StreamWriter sw = new StreamWriter(fileStream, Encoding.UTF8))
-                {
-                    await sw.WriteLineAsync("Recipient : " + message.RecipientsNumber +
-                                            "\tMsgCount" + message.MessageCount + "\tBody : " +
-                                            "\tSize : " + message.Size + "\tBody : " + message.Body).ConfigureAwait(false);
 
-                }
-            }
-        }
+        //    using (var fileStream = new FileStream(outFileName, FileMode.Append, FileAccess.Write))
+        //    {
+        //        using (StreamWriter sw = new StreamWriter(fileStream))
+        //        {
+        //            await sw.WriteLineAsync("Recipient : " + message.RecipientsNumber +
+        //                                    "\tMsgCount" + message.MessageCount + "\tBody : " +
+        //                                    "\tSize : " + message.Size + "\tBody : " + message.Body).ConfigureAwait(false);
 
-        /// <summary>
-        /// Creates Recipients and parses it's variables
-        /// </summary>
-        /// <param name="lines"></param>
-        private void readRecipientAndVariables(List<string> lines)
+        //        }
+        //    }
+        //}
+        private async Task SendMessageAsync(Message message)
         {
             try
             {
-                for(int i = 1; i < lines.Count; i++)
+                string text = composeMessage(message);
+                byte[] encodedText = Encoding.Unicode.GetBytes(text);
+
+                using (FileStream sourceStream = new FileStream(outFileName,
+                    FileMode.Append, FileAccess.Write, FileShare.None,
+                    bufferSize: 4096, useAsync: true))
                 {
-                    List<string> recipientFields = lines[i].Split(',').Select(s => s.Trim()).ToList();
-
-                    Recipient recipient = addRecipient(recipientFields[0]);
-
-                    for(int j = 1; j < recipientFields.Count; j++)
-                    {
-                        string[] keyValuePair = recipientFields[j].Split('=');
-                        recipient.AddVariable(keyValuePair[0].Trim(), keyValuePair[1].Trim());
-                    }
+                    await sourceStream.WriteAsync(encodedText, 0, encodedText.Length).ConfigureAwait(false);
                 }
             }
-            catch(Exception e)
+            catch (Exception exp)
             {
-                Log.Debug(e.Message);
+                Log.Error(exp.Message);
             }
         }
-    }
+
+        private string composeMessage(Message message)
+        {
+            string text = string.Format("Recipient : {0}\tMsgCount : {1}\tSize : {2} bytes\tChars : {3}\tBody : {4}{5}",
+                new object[] {message.RecipientsNumber, message.MessageCount, message.SizeInBytes, message.NumberOfCharacters, message.Body, Environment.NewLine});
+            return text;
+        }
+    } 
 }

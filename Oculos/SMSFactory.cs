@@ -2,62 +2,50 @@
 using System.Text;
 using Bergfall.Oculos.Data;
 using Bergfall.Oculos.Utils;
+using System.IO;
 
 namespace Bergfall.Oculos
 {
     public class SMSFactory
     {
         //private Regex regex = new Regex(@"(?<=\{)([^}]*)(?=\})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        public Message CreateMessage(string templateString, Recipient recipient)
+        public Message CreateMessage(Template template, Recipient recipient)
         {
             Message message = new Message(recipient.TelephoneNumber);
-            Template template = new Template(templateString);
 
-            int MaxNumberOfCharacters = 160;
-
-            try
-            {
-                if(template.VariableName.Count != recipient.variables.Count)
+            
+                if(template.TemplateTokens.Count != recipient.Variables.Count)
                 {
-                    Log.Debug("Difference in expected number of variables in template, to the number given!");
+                    Log.Error("Difference in expected number of variables in template, to the number given!");
+                    throw new ArgumentException(
+                        "Difference in expected number of variables in template, to the number given!");
                 }
 
-                for(int i = 0; i < template.VariableName.Count; i++)
+                foreach(TemplateToken templateToken in template.TemplateTokens)
                 {
-                    string variable = recipient.GetVariable(template.VariableName[i]);
-
+                    string variable = recipient.GetVariable(templateToken.Value);
+                     
                     if(string.IsNullOrEmpty(variable))
                     {
-                        Log.Debug("Variable : " + template.VariableName[i] + " is not found in " +
+                        Log.Error("Variable : " + variable + " is not found in " +
                                   recipient.TelephoneNumber);
+                        break;
                     }
-
-                    message.Body += templateString.Replace("{" + template.VariableName[i] + "}", variable);
+                    //StringBuilder sb = new StringBuilder(template.OriginalTemplateString);
+                    //sb.Append(variable, templateToken.StartIndex, templateToken.Length);
+                    template.OriginalTemplateString = template.OriginalTemplateString.Replace("{" + templateToken.Value + "}", variable);
                 }
-                
-            }
-            catch(Exception exp)
+            message.Body = template.OriginalTemplateString;
+            
+            //byte[] bytes = message.Encoding.GetBytes(message.Body);
+
+            if(!message.Body.IsGSM())
             {
-                Log.Debug(exp.Message);
+                message.Encoding = Encoding.BigEndianUnicode;
             }
             
-            byte[] bytes = message.Encoding.GetBytes(templateString);
-
-            foreach(byte bit in bytes)
-            {
-                if(bit > 128)
-                {
-                    // Cheat by using standard Unicode if any sign is beyond the 128 limit, instead of USC2, which I think is just Unicode BigEndian?!
-                    message.Encoding = Encoding.BigEndianUnicode;
-                    message.MaxNumberOfCharacters = 70;
-                }
-            }
-            if(templateString.Length > 160)
-            {
-                message.MaxNumberOfCharacters = 153;
-            }
-            message.Size = message.Encoding.GetByteCount(message.Body);
-            message.MessageCount = templateString.Length / MaxNumberOfCharacters + 1;
+            message.SizeInBytes = message.Encoding.GetByteCount(message.Body);
+            message.MessageCount = 1 + (message.NumberOfCharacters / message.MaxNumberOfCharacters);
 
             return message;
         }
