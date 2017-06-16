@@ -3,39 +3,35 @@ using System.Text;
 using Bergfall.Oculos.Data;
 using Bergfall.Oculos.Utils;
 using System.IO;
+using Bergfall.Oculos.Interfaces;
+using Bergfall.Oculos.Data.Interfaces;
 
 namespace Bergfall.Oculos
 {
-    public class SMSFactory
+    public class SMSFactory : IMessageSender
     {
         //private Regex regex = new Regex(@"(?<=\{)([^}]*)(?=\})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         public Message CreateMessage(Template template, Recipient recipient)
         {
             Message message = new Message(recipient.TelephoneNumber);
 
-            
-                if(template.TemplateTokens.Count != recipient.Variables.Count)
-                {
-                    Log.Error("Difference in expected number of variables in template, to the number given!");
-                    throw new ArgumentException(
-                        "Difference in expected number of variables in template, to the number given!");
-                }
+            string text = template.OriginalTemplateString;
 
-                foreach(TemplateToken templateToken in template.TemplateTokens)
+            // Merge variables from recipient into template
+            foreach (var token in template.TemplateTokens)
+            {
+                var variable = recipient.GetVariable(token.Value);
+                if(variable == null)
                 {
-                    string variable = recipient.GetVariable(templateToken.Value);
-                     
-                    if(string.IsNullOrEmpty(variable))
-                    {
-                        Log.Error("Variable : " + variable + " is not found in " +
-                                  recipient.TelephoneNumber);
-                        break;
-                    }
+                    throw new ArgumentException(String.Format("Variable : {0} is not found in {1}", token.Value, recipient.TelephoneNumber));
+                }
+            
+               
                     //StringBuilder sb = new StringBuilder(template.OriginalTemplateString);
                     //sb.Append(variable, templateToken.StartIndex, templateToken.Length);
-                    template.OriginalTemplateString = template.OriginalTemplateString.Replace("{" + templateToken.Value + "}", variable);
-                }
-            message.Body = template.OriginalTemplateString;
+                text = text.Replace("{" + token.Value + "}", variable);
+            }
+                message.Body = text;
             
             //byte[] bytes = message.Encoding.GetBytes(message.Body);
 
@@ -44,11 +40,15 @@ namespace Bergfall.Oculos
                 message.Encoding = Encoding.BigEndianUnicode;
             }
             
-            message.SizeInBytes = message.Encoding.GetByteCount(message.Body);
-            message.MessageCount = 1 + (message.NumberOfCharacters / message.MaxNumberOfCharacters);
+            //message.SizeInBytes = message.Encoding.GetByteCount(message.Body);
+            message.PartsCount = 1 + (message.NumberOfCharacters / message.MaxNumberOfCharacters);
 
             return message;
         }
 
+        bool IMessageSender.Send(IMessage iMessage)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

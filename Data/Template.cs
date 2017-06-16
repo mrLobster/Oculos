@@ -6,7 +6,7 @@ namespace Bergfall.Oculos.Data
 {
     public class Template
     {
-        public List<TemplateToken> TemplateTokens { get; } = new List<TemplateToken>();
+        public IList<TemplateToken> TemplateTokens { get; } = new List<TemplateToken>();
         public string OriginalTemplateString {get; set; }
         public Template(string templateString)
         {

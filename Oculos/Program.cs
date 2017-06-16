@@ -43,19 +43,19 @@ namespace Bergfall.Oculos
             }
         }
 
-        private static void Run(string inFileName)
+        private async static void Run(string inFileName)
         {
             try
             {
-
-
                 if (!File.Exists(inFileName))
                 {
                     Log.Error("Infilename " + inFileName + " does not exist!");
                 }
                 else
                 {
-                    IO.GetInstance(inFileName);
+                    var domain = new Domain();
+                    domain.ParseInputFile(inFileName);
+                    domain.SendMessages(null);
                 }
             }
             catch (Exception exp)

@@ -1,16 +1,17 @@
 ﻿using System.Text;
+using Bergfall.Oculos.Data.Interfaces;
 using Bergfall.Oculos.Utils;
 
 namespace Bergfall.Oculos.Data
 {
-    public class Message
+    public class Message : IMessage
     {
         public Message(string recipientsNumber)
         {
             RecipientsNumber = recipientsNumber;
         }
 
-        public string RecipientsNumber { get; private set; }
+        public string RecipientsNumber { get; }
 
         public Encoding Encoding { get; set; } = new GSMEncoding();
 
@@ -42,13 +43,15 @@ namespace Bergfall.Oculos.Data
             }
         }
 
-        public int MessageCount { get; set; } = 1;
-
+        public int PartsCount { get; set; } = 1;
 
         public string Body { get; set; }
 
-       
-        public int SizeInBytes { get; set; }
+        public int SizeInBytes { get
+            {
+                return Encoding.GetByteCount(Body);
+            }
+        }
 
         public int NumberOfCharacters => this.Body.Length;
     }

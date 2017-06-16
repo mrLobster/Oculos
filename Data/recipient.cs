@@ -10,33 +10,18 @@ namespace Bergfall.Oculos.Data
             get; private set;
         }
 
-        public Dictionary<string, string> Variables { get; } = new Dictionary<string, string>();
-        public List<Message> Messages { get; } = new List<Message>();
+        public IDictionary<string, string> Variables { get; private set; }
+        //public List<Message> Messages { get; } = new List<Message>();
 
-        public Recipient(string phoneNumber)
+        public Recipient(string phoneNumber, IDictionary<string,string> variables)
         {
             TelephoneNumber = phoneNumber;
-        }
-
-        public void AddVariable(string key, string value)
-        {
-            if (String.IsNullOrEmpty(key))
-            {
-                throw new ArgumentNullException("key", "Trying to add variable with key null for recipient : " + TelephoneNumber);
-            }
-            if (String.IsNullOrEmpty(value))
-            {
-                throw new ArgumentNullException(value, "Trying to add variable with value null for recipient : " + TelephoneNumber);
-            }
-            
-            Variables.Add(key, value);
-            
+            Variables = variables;
         }
 
         public string GetVariable(string templateVariable)
         {
-            string variable;
-            if(Variables.TryGetValue(templateVariable, out variable))
+            if (Variables.TryGetValue(templateVariable, out string variable))
             {
                 return variable;
             }
